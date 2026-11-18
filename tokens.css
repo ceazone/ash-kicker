@@ -1,0 +1,169 @@
+/* ============================================================
+   Ash Kicker — Design Tokens v0.1
+   Source: Figma "AI NOW" › Page 3 › "Ash Kicker — System"
+   Variables: AK / Primitives, AK / Color (Light/Dark), AK / Size
+   Rule: components use SEMANTIC tokens only (--ak-bg-*, --ak-text-*, …),
+   never primitives or raw hex.
+   ============================================================ */
+
+/* ---------- Fonts ----------
+   Licensed brand fonts: Druk (Commercial Type), GT America (Grilli Type).
+   Not licensed for app embedding yet → free stand-ins load first in dev.
+   Swap by self-hosting the licensed files with the SAME family names below.
+   Google Fonts stand-ins:
+   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+*/
+:root {
+  --ak-font-display:   "Druk", "Anton", "Impact", sans-serif;              /* caps only */
+  --ak-font-condensed: "GT America Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  --ak-font-sans:      "GT America", "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Primitives (do not use directly in components) ---------- */
+:root {
+  --ak-blue-100: #E3EAFF;
+  --ak-blue-300: #8FA8FF;
+  --ak-blue-500: #2D5BFF;
+  --ak-blue-700: #1D3FC4;
+  --ak-orange-100: #FDE6D4;
+  --ak-orange-500: #EC7F37;
+  --ak-red-100: #FCDCD8;
+  --ak-red-500: #EB503F;
+  --ak-peach-100: #FFEDE5;
+  --ak-peach-300: #FFBDA3;
+  --ak-green-100: #E7F3D8;
+  --ak-green-500: #86B744;
+  --ak-green-700: #3E7A1E;
+  --ak-brown-900: #412E24;
+  --ak-cream-100: #FDF2DE;
+  --ak-neutral-0: #FFFFFF;
+  --ak-neutral-100: #F4F3F2;
+  --ak-neutral-200: #E5E4E4;
+  --ak-neutral-400: #AFAFAF;
+  --ak-neutral-600: #6B6B6B;
+  --ak-neutral-800: #2A2A2A;
+  --ak-neutral-850: #1F1F1F;
+  --ak-neutral-900: #141414;
+  --ak-neutral-1000: #010101;
+}
+
+/* ---------- Semantic colors — Light (default) ---------- */
+:root,
+[data-theme="light"] {
+  --ak-bg-canvas: var(--ak-neutral-0);
+  --ak-bg-surface: var(--ak-cream-100);
+  --ak-bg-elevated: var(--ak-neutral-0);
+  --ak-bg-subtle: var(--ak-neutral-100);
+
+  --ak-text-primary: var(--ak-neutral-1000);
+  --ak-text-secondary: var(--ak-neutral-600);
+  --ak-text-disabled: var(--ak-neutral-400);
+  --ak-text-on-brand: var(--ak-neutral-0);
+  --ak-text-on-accent: var(--ak-neutral-1000);
+
+  --ak-brand-primary: var(--ak-blue-500);
+  --ak-brand-pressed: var(--ak-blue-700);
+  --ak-brand-tint: var(--ak-blue-100);
+
+  --ak-accent-energy: var(--ak-orange-500);
+  --ak-accent-energy-tint: var(--ak-orange-100);
+  --ak-accent-streak: var(--ak-red-500);
+  --ak-accent-streak-tint: var(--ak-red-100);
+  --ak-accent-peach: var(--ak-peach-300);
+  --ak-accent-peach-tint: var(--ak-peach-100);
+
+  --ak-status-success: var(--ak-green-500);
+  --ak-status-success-text: var(--ak-green-700);
+  --ak-status-error: var(--ak-red-500);
+
+  --ak-border-default: var(--ak-neutral-200);
+  --ak-border-strong: var(--ak-neutral-1000);
+
+  --ak-logo-outline: var(--ak-brown-900);
+}
+
+/* ---------- Semantic colors — Dark ---------- */
+[data-theme="dark"] {
+  --ak-bg-canvas: var(--ak-neutral-1000);
+  --ak-bg-surface: var(--ak-neutral-900);
+  --ak-bg-elevated: var(--ak-neutral-850);
+  --ak-bg-subtle: var(--ak-neutral-800);
+
+  --ak-text-primary: var(--ak-neutral-0);
+  --ak-text-secondary: var(--ak-neutral-400);
+  --ak-text-disabled: var(--ak-neutral-600);
+
+  --ak-brand-pressed: var(--ak-blue-300);
+  --ak-brand-tint: var(--ak-neutral-800);
+  --ak-accent-energy-tint: var(--ak-neutral-800);
+  --ak-accent-streak-tint: var(--ak-neutral-800);
+  --ak-accent-peach-tint: var(--ak-neutral-800);
+  --ak-status-success-text: var(--ak-green-500);
+
+  --ak-border-default: var(--ak-neutral-800);
+  --ak-border-strong: var(--ak-neutral-0);
+}
+
+/* Follow the OS unless the app forces a theme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ak-bg-canvas: var(--ak-neutral-1000);
+    --ak-bg-surface: var(--ak-neutral-900);
+    --ak-bg-elevated: var(--ak-neutral-850);
+    --ak-bg-subtle: var(--ak-neutral-800);
+    --ak-text-primary: var(--ak-neutral-0);
+    --ak-text-secondary: var(--ak-neutral-400);
+    --ak-text-disabled: var(--ak-neutral-600);
+    --ak-brand-pressed: var(--ak-blue-300);
+    --ak-brand-tint: var(--ak-neutral-800);
+    --ak-accent-energy-tint: var(--ak-neutral-800);
+    --ak-accent-streak-tint: var(--ak-neutral-800);
+    --ak-accent-peach-tint: var(--ak-neutral-800);
+    --ak-status-success-text: var(--ak-green-500);
+    --ak-border-default: var(--ak-neutral-800);
+    --ak-border-strong: var(--ak-neutral-0);
+  }
+}
+
+/* ---------- Spacing & radius ---------- */
+:root {
+  --ak-space-4: 4px;
+  --ak-space-8: 8px;
+  --ak-space-12: 12px;
+  --ak-space-16: 16px;
+  --ak-space-20: 20px;
+  --ak-space-24: 24px;
+  --ak-space-32: 32px;
+  --ak-space-40: 40px;
+  --ak-space-48: 48px;
+  --ak-space-64: 64px;
+
+  --ak-radius-sm: 8px;
+  --ak-radius-md: 16px;
+  --ak-radius-lg: 24px;   /* cards */
+  --ak-radius-xl: 32px;
+  --ak-radius-pill: 999px; /* buttons, chips */
+}
+
+/* ---------- Type styles ----------
+   Sizes are Figma px at mobile scale. Letter-spacing: Figma % → em (1% = 0.01em).
+   All numeric styles use tabular figures so timers/weights don't jitter. */
+.ak-display-xl { font: 400 120px/0.88 var(--ak-font-display); text-transform: uppercase; }
+.ak-display-l  { font: 400 80px/0.88 var(--ak-font-display);  text-transform: uppercase; }
+.ak-display-m  { font: 400 56px/0.90 var(--ak-font-display);  text-transform: uppercase; }
+
+.ak-numeric-xl { font: 400 96px/0.90 var(--ak-font-display);   font-variant-numeric: tabular-nums; }
+.ak-numeric-m  { font: 900 40px/1.00 var(--ak-font-condensed); font-variant-numeric: tabular-nums; }
+
+.ak-h1 { font: 900 32px/1.10 var(--ak-font-condensed); text-transform: uppercase; }
+.ak-h2 { font: 700 24px/1.20 var(--ak-font-sans); letter-spacing: -0.01em; }
+.ak-h3 { font: 700 20px/1.25 var(--ak-font-sans); letter-spacing: -0.005em; }
+
+.ak-body-l        { font: 400 18px/1.40 var(--ak-font-sans); }
+.ak-body-m        { font: 400 16px/1.45 var(--ak-font-sans); }
+.ak-body-m-strong { font: 500 16px/1.45 var(--ak-font-sans); }
+.ak-body-s        { font: 400 14px/1.45 var(--ak-font-sans); }
+.ak-caption       { font: 500 12px/1.35 var(--ak-font-sans); letter-spacing: 0.01em; }
+
+.ak-label-button   { font: 900 18px/1.00 var(--ak-font-condensed); letter-spacing: 0.04em; text-transform: uppercase; }
+.ak-label-overline { font: 700 13px/1.00 var(--ak-font-condensed); letter-spacing: 0.08em; text-transform: uppercase; }

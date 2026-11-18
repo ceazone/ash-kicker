@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ash Kicker</title>
+<meta name="description" content="Your workout, ready when you are.">
+<meta name="theme-color" content="#2D5BFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ash Kicker">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main id="view" aria-live="polite"></main>
+
+<button id="rest" class="rest" hidden aria-label="Rest timer. Tap to dismiss.">
+  <span class="rest-fill" id="restFill"></span>
+  <span class="ak-label-overline rest-label">Rest</span>
+  <span class="ak-numeric-m rest-time" id="restTime">1:15</span>
+  <span class="ak-label-overline rest-hint">Tap to skip</span>
+</button>
+
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <button data-tab="today" class="on">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6.5 6.5v11M17.5 6.5v11M21 9v6M6.5 12h11"/></svg>
+    <span class="ak-caption">Today</span>
+  </button>
+  <button data-tab="week">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+    <span class="ak-caption">Week</span>
+  </button>
+  <button data-tab="progress">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-6M12 20V5M19 20v-10"/></svg>
+    <span class="ak-caption">Progress</span>
+  </button>
+  <button data-tab="guide">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.600-7.5 10.200-7.5 10.200z"/></svg>
+    <span class="ak-caption">Guide</span>
+  </button>
+</nav>
+
+<script src="program.js"></script>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
