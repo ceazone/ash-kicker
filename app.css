@@ -243,3 +243,30 @@ details > summary::-webkit-details-marker { display: none; }
   .set input, .set .fixed { font-size: 34px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---- finish celebration: full-screen takeover ---- */
+.party {
+  position: fixed; inset: 0; z-index: 50; overflow: hidden;
+  background: var(--ak-brand-primary); color: var(--ak-text-on-brand);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: var(--ak-space-24); cursor: pointer;
+  animation: party-open .5s cubic-bezier(.2, .7, .3, 1) both;
+}
+.party.out { animation: party-close .3s ease-in both; }
+.party canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.party-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--ak-space-16); }
+.party-peach { width: 168px; height: 168px; animation: peach-pop .7s cubic-bezier(.34, 1.56, .64, 1) .15s both, peach-bob 1.1s ease-in-out .85s infinite; }
+.party-title { font-size: clamp(72px, 27vw, 120px); padding-bottom: .1em; animation: stamp .45s cubic-bezier(.2, .9, .3, 1.2) .45s both; }
+.party-sub, .party-line, .party-hint { animation: rise .4s ease-out both; }
+.party-sub { animation-delay: .75s; }
+.party-line { animation-delay: .9s; max-width: 20em; }
+.party-hint { animation-delay: 1.6s; margin-top: var(--ak-space-24); }
+@keyframes party-open { from { clip-path: circle(0% at 50% 92%); } to { clip-path: circle(150% at 50% 92%); } }
+@keyframes party-close { to { opacity: 0; transform: scale(1.06); } }
+@keyframes peach-pop { 0% { transform: scale(0) rotate(-40deg); } 70% { transform: scale(1.18) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes peach-bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-14px) rotate(4deg); } }
+@keyframes stamp { from { transform: scale(2.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .party, .party *, .party.out { animation: none !important; }
+}

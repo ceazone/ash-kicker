@@ -363,6 +363,66 @@
   }
   restEl.addEventListener('click', restStop);
 
+  /* ---------- finish celebration ---------- */
+  const party = $('#party'), fx = $('#partyFx');
+  let partyRaf = 0, partyT = 0;
+  const CHEERS = ['Ash kicked.', 'Peachy.', 'Nailed it.', 'Boom.', 'Crushed.', 'Done & dusted.'];
+  const LINES = ['That one is in the books.', 'Future you says thanks.', 'Stronger than last week.', 'You showed up. That is the whole trick.', 'Go enjoy being smug about it.'];
+
+  function partyClose() {
+    if (party.hidden || party.classList.contains('out')) return;
+    clearTimeout(partyT); party.classList.add('out');
+    setTimeout(() => { cancelAnimationFrame(partyRaf); party.hidden = true; party.classList.remove('out'); }, 300);
+  }
+  party.addEventListener('click', partyClose);
+
+  function confetti() {
+    const css = getComputedStyle(document.documentElement);
+    const colors = ['--ak-accent-energy', '--ak-accent-streak', '--ak-accent-peach', '--ak-status-success', '--ak-text-on-brand', '--ak-brand-tint']
+      .map(v => css.getPropertyValue(v).trim()).filter(Boolean);
+    const dpr = Math.min(2, window.devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+    fx.width = W * dpr; fx.height = H * dpr;
+    const g = fx.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const bits = [];
+    const burst = (n, x, y, spread, power) => {
+      for (let i = 0; i < n; i++) {
+        const a = -Math.PI / 2 + rnd(-spread, spread), v = rnd(power * .45, power);
+        bits.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, s: rnd(7, 15), r: rnd(0, 6.3), vr: rnd(-.3, .3), c: colors[i % colors.length], round: i % 4 === 0, wob: rnd(0, 6.3) });
+      }
+    };
+    burst(90, W / 2, H * .95, .75, H * .034);          // the big one, from the bottom
+    setTimeout(() => burst(45, W * .12, H * .7, .5, H * .026), 350);   // left cannon
+    setTimeout(() => burst(45, W * .88, H * .7, .5, H * .026), 550);   // right cannon
+    const t0 = performance.now();
+    (function frame(t) {
+      g.clearRect(0, 0, W, H);
+      for (const b of bits) {
+        b.vy += .32; b.vx *= .99; b.vy *= .99; b.wob += .12;
+        b.x += b.vx + Math.sin(b.wob) * .8; b.y += b.vy; b.r += b.vr;
+        g.save(); g.translate(b.x, b.y); g.rotate(b.r); g.fillStyle = b.c;
+        if (b.round) { g.beginPath(); g.arc(0, 0, b.s / 2, 0, 6.3); g.fill(); }
+        else g.fillRect(-b.s / 2, -b.s / 4, b.s, b.s / 2 * (.4 + Math.abs(Math.cos(b.wob))));
+        g.restore();
+      }
+      if (t - t0 < 5200 && !party.hidden) partyRaf = requestAnimationFrame(frame); else g.clearRect(0, 0, W, H);
+    })(t0);
+  }
+
+  function celebrate(ses) {
+    const n = S.sessions.length, pb = ses.pbs && ses.pbs.length;
+    const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $('#partySub').textContent = WORKOUTS[ses.wk].name + ' · Workout #' + n;
+    $('#partyTitle').textContent = n === 1 ? 'First one!' : pb ? 'New best!' : CHEERS[n % CHEERS.length];
+    $('#partyLine').textContent = pb ? ses.pbs.map(p => EX[p.id].name + ' at ' + p.w + ' lb').join(' · ')
+      : n === 1 ? 'That was the hardest one. It is all downhill from here.' : LINES[n % LINES.length];
+    cancelAnimationFrame(partyRaf); clearTimeout(partyT);
+    party.classList.remove('out'); party.hidden = false;
+    if (!still) confetti();
+    try { navigator.vibrate && navigator.vibrate([60, 50, 60, 50, 180]); } catch (e) { /* unsupported */ }
+    partyT = setTimeout(partyClose, 5500);
+  }
+
   /* ---------- actions ---------- */
   function toggleDay(d) {
     const i = S.days.indexOf(d);
@@ -399,7 +459,7 @@
       } else restStop();
     },
     feel(el) { const ei = +el.dataset.e; S.cur.ex[ei].feel = el.dataset.f; ui.open[ei] = false; ui.how[ei] = false; save(); render(true); },
-    finish() { restStop(); L.finish(S); ui.how = {}; ui.open = {}; save(); render(); },
+    finish() { restStop(); const ses = L.finish(S); ui.how = {}; ui.open = {}; save(); render(); if (ses) celebrate(ses); },
     set(el) {
       const k = el.dataset.k, raw = el.dataset.v;
       S.settings[k] = k === 'theme' ? raw : k === 'bw' ? raw === 'true' : +raw;

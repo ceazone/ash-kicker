@@ -25,6 +25,17 @@
   <span class="ak-label-overline rest-hint">Tap to skip</span>
 </button>
 
+<div id="party" class="party" hidden role="dialog" aria-label="Workout complete. Tap to continue.">
+  <canvas id="partyFx" aria-hidden="true"></canvas>
+  <div class="party-in">
+    <img class="party-peach" src="logo/peach-color.svg" alt="" width="168" height="168">
+    <div class="ak-label-overline party-sub" id="partySub"></div>
+    <div class="ak-display-xl party-title" id="partyTitle"></div>
+    <p class="ak-body-l party-line" id="partyLine"></p>
+    <div class="ak-label-overline party-hint">Tap to continue</div>
+  </div>
+</div>
+
 <nav class="tabs" id="tabs" aria-label="Sections">
   <button data-tab="today" class="on">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6.5 6.5v11M17.5 6.5v11M21 9v6M6.5 12h11"/></svg>
