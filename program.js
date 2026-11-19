@@ -181,7 +181,7 @@
       q: 'side plank from knees proper form beginner'
     },
     pallof: {
-      name: 'Pallof Press', muscle: 'Core, anti-twist', equip: 'Cable at chest height', type: 'w', lo: 10, hi: 12, inc: 5, side: true, swaps: ['sideplank'],
+      name: 'Pallof Press', muscle: 'Core, anti-twist', equip: 'Cable at chest height', type: 'w', lo: 10, hi: 12, inc: 5, side: true, swaps: ['woodchop', 'sideplank'],
       how: 'Stand side-on to the cable, handle held at your chest. Press it straight out in front, hold for two seconds without letting it twist you, bring it back. Go light.',
       cue: 'Breathe out as you press.',
       q: 'pallof press proper form cable'
@@ -191,6 +191,30 @@
       how: 'Hold one dumbbell at your side like a suitcase and walk slowly, standing tall. Do not lean toward or away from the weight. Swap hands. A weight you could curl is too light; start around 20 lb.',
       cue: 'Normal breathing. Shoulders level.',
       q: 'suitcase carry exercise proper form'
+    },
+    woodchop: {
+      name: 'Cable Wood Chop', muscle: 'Obliques', equip: 'Cable, set high', type: 'w', lo: 10, hi: 12, inc: 5, side: true, swaps: ['pallof', 'sidebend'],
+      how: 'Stand side-on to a high cable with both hands on the handle. Pull it down and across your body to the opposite hip, turning through your waist with your arms long. Return slowly.',
+      cue: 'Breathe out as you chop.',
+      q: 'standing cable wood chop proper form'
+    },
+    cablecrunch: {
+      name: 'Kneeling Cable Crunch', muscle: 'Abs', equip: 'Cable + rope, set high', type: 'w', lo: 10, hi: 15, inc: 5, swaps: ['wdeadbug', 'woodchop'],
+      how: 'Kneel facing the cable with the rope held beside your head. Curl your ribs toward your hips, rounding your back, without sitting back onto your heels. Uncurl slowly.',
+      cue: 'Start light and breathe out all the way through the crunch. Pressure or bulging down below, or your belly doming, means swap this one for now.',
+      q: 'kneeling cable crunch proper form'
+    },
+    wdeadbug: {
+      name: 'Weighted Dead Bug', muscle: 'Deep core', equip: 'Mat + one dumbbell', type: 'w', lo: 8, hi: 10, inc: 2.5, side: true, img: 'deadbug', swaps: ['cablecrunch', 'deadbug'],
+      how: 'Dead bug position, holding one light dumbbell in both hands above your chest. Keep the weight still and your lower back heavy on the floor while you lower one leg at a time toward straight.',
+      cue: 'Breathe out as the leg lowers. If your back lifts off the floor, the weight is too heavy.',
+      q: 'weighted dead bug dumbbell proper form'
+    },
+    sidebend: {
+      name: 'Dumbbell Side Bend', muscle: 'Obliques', equip: 'One dumbbell', type: 'w', lo: 12, hi: 15, inc: 5, side: true, swaps: ['woodchop', 'pallof'],
+      how: 'Stand tall with one dumbbell at your side. Slide it down toward your knee, then pull yourself back up to tall using the opposite side of your waist. No leaning forward or back.',
+      cue: 'Breathe out as you come up.',
+      q: 'dumbbell side bend proper form'
     },
     bridge: {
       name: 'Glute Bridge', muscle: 'Glutes & pelvic floor', equip: 'Mat', type: 'bw', lo: 12, hi: 15, swaps: ['birddog'],
@@ -202,14 +226,15 @@
 
   /* slot = [exerciseId, fixedSets?]  — main lifts take the phase set count */
   const WORKOUTS = {
-    FA: { name: 'Full Body A', tag: 'Press, row, hinge', slots: [['warm', 1], ['legpress'], ['dbbench'], ['row'], ['rdl'], ['ohp'], ['deadbug', 2], ['birddog', 2]] },
-    FB: { name: 'Full Body B', tag: 'Squat, pull, glutes', slots: [['warm', 1], ['goblet'], ['pulldown'], ['hipthrust'], ['incline'], ['legcurl'], ['sideplank', 2], ['pallof', 2]] },
-    FC: { name: 'Full Body C', tag: 'Single-leg, back, arms', slots: [['warm', 1], ['stepup'], ['chestpress'], ['dbrow'], ['backext'], ['curl'], ['carry', 2], ['deadbug', 2]] },
-    UA: { name: 'Upper Body A', tag: 'Press and pull', slots: [['warm', 1], ['dbbench'], ['pulldown'], ['ohp'], ['row'], ['pushdown'], ['deadbug', 2], ['pallof', 2]] },
-    LA: { name: 'Lower Body A', tag: 'Legs and glutes', slots: [['warm', 1], ['legpress'], ['rdl'], ['hipthrust'], ['legcurl'], ['abduct'], ['birddog', 2], ['sideplank', 2]] },
-    UB: { name: 'Upper Body B', tag: 'Shoulders, back, arms', slots: [['warm', 1], ['incline'], ['dbrow'], ['lateral'], ['facepull'], ['curl'], ['carry', 2], ['deadbug', 2]] },
-    LB: { name: 'Lower Body B', tag: 'Squat, back, hips', slots: [['warm', 1], ['goblet'], ['backext'], ['stepup'], ['legext'], ['abduct'], ['bridge', 2], ['sideplank', 2]] },
-    CC: { name: 'Cardio & Core', tag: 'The lighter day', slots: [['cardio', 1], ['deadbug', 2], ['birddog', 2], ['sideplank', 2], ['pallof', 2], ['bridge', 2]] }
+    FA: { name: 'Full Body A', tag: 'Press, row, hinge', slots: [['warm', 1], ['legpress'], ['dbbench'], ['row'], ['rdl'], ['ohp'], ['cablecrunch', 2], ['birddog', 2]] },
+    FB: { name: 'Full Body B', tag: 'Squat, pull, glutes', slots: [['warm', 1], ['goblet'], ['pulldown'], ['hipthrust'], ['incline'], ['legcurl'], ['woodchop', 2], ['sideplank', 2]] },
+    FC: { name: 'Full Body C', tag: 'Single-leg, back, arms', slots: [['warm', 1], ['stepup'], ['chestpress'], ['dbrow'], ['backext'], ['curl'], ['wdeadbug', 2], ['carry', 2]] },
+    UA: { name: 'Upper Body A', tag: 'Press and pull', slots: [['warm', 1], ['dbbench'], ['pulldown'], ['ohp'], ['row'], ['pushdown'], ['pallof', 2], ['wdeadbug', 2]] },
+    LA: { name: 'Lower Body A', tag: 'Legs and glutes', slots: [['warm', 1], ['legpress'], ['rdl'], ['hipthrust'], ['legcurl'], ['abduct'], ['woodchop', 2], ['birddog', 2]] },
+    UB: { name: 'Upper Body B', tag: 'Shoulders, back, arms', slots: [['warm', 1], ['incline'], ['dbrow'], ['lateral'], ['facepull'], ['curl'], ['cablecrunch', 2], ['carry', 2]] },
+    LB: { name: 'Lower Body B', tag: 'Squat, back, hips', slots: [['warm', 1], ['goblet'], ['backext'], ['stepup'], ['legext'], ['abduct'], ['sidebend', 2], ['sideplank', 2]] },
+    CC: { name: 'Cardio & Core', tag: 'The lighter day', slots: [['cardio', 1], ['pallof', 2], ['deadbug', 2], ['birddog', 2], ['sideplank', 2], ['bridge', 2]] },
+    AR: { name: 'Arms & Shoulders', tag: 'The fun one', slots: [['warm', 1], ['curl'], ['pushdown'], ['lateral'], ['hammer'], ['triext'], ['pallof', 2], ['cablecrunch', 2]] }
   };
 
   const ROTATIONS = {
@@ -220,7 +245,10 @@
   };
   const SPLIT_NAMES = { full2: 'Full body', full3: 'Full body × 3', ul4: 'Upper / lower', ul5: 'Upper / lower + cardio & core' };
 
-  const P = { EX, WORKOUTS, ROTATIONS, SPLIT_NAMES };
+  /* exercises with start/finish photos in img/ (public-domain, from free-exercise-db) */
+  const IMG = new Set(['abduct', 'backext', 'bridge', 'cablecrunch', 'cardio', 'carry', 'chestpress', 'curl', 'dbbench', 'dbbridge', 'dbrow', 'deadbug', 'facepull', 'goblet', 'hammer', 'hipthrust', 'incline', 'lateral', 'legcurl', 'legext', 'legpress', 'ohp', 'pallof', 'pulldown', 'pushdown', 'rdl', 'revfly', 'row', 'shoulderm', 'sidebend', 'sideplank', 'stepup', 'triext', 'warm', 'woodchop']);
+
+  const P = { EX, WORKOUTS, ROTATIONS, SPLIT_NAMES, IMG };
   if (typeof module !== 'undefined' && module.exports) module.exports = P;
   root.AK_PROGRAM = P;
 })(typeof window !== 'undefined' ? window : globalThis);

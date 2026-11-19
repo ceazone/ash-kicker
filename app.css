@@ -270,3 +270,24 @@ details > summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .party, .party *, .party.out { animation: none !important; }
 }
+
+/* ---- v1.1: photos, picker, exercise timer, warm-up set ---- */
+.thumb { flex: none; width: 64px; height: 64px; border-radius: var(--ak-radius-md); overflow: hidden; background: var(--ak-bg-subtle); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ak-space-8); }
+.photos figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.photos img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--ak-radius-sm); display: block; background: var(--ak-bg-subtle); }
+.timer-btn {
+  margin-left: auto; flex: none; min-height: 44px; padding: 0 14px; border-radius: var(--ak-radius-pill);
+  background: var(--ak-bg-subtle); color: var(--ak-text-primary); white-space: nowrap;
+  font: 700 13px/1 var(--ak-font-condensed); letter-spacing: .08em; text-transform: uppercase;
+}
+.timer-btn + .check { margin-left: 0; }
+.set.warm { min-height: 64px; border-style: dashed; }
+.set.warm.done { border-style: solid; }
+.pick {
+  display: flex; align-items: center; gap: var(--ak-space-12); width: 100%; text-align: left;
+  padding: 14px var(--ak-space-16); border-radius: var(--ak-radius-md);
+  background: var(--ak-bg-elevated); border: 2px solid var(--ak-border-default);
+}
+.pick.on { border-color: var(--ak-border-strong); }

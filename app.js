@@ -1,10 +1,10 @@
 /* Ash Kicker — screens, events, storage. Logic lives in logic.js, the program in program.js. */
 (function () {
   'use strict';
-  const { EX, WORKOUTS, ROTATIONS, SPLIT_NAMES } = window.AK_PROGRAM;
+  const { EX, WORKOUTS, ROTATIONS, SPLIT_NAMES, IMG } = window.AK_PROGRAM;
   const L = window.AK_LOGIC;
   const KEY = 'ashkicker:v1';
-  const VERSION = '1.0';
+  const VERSION = '1.1';
   const $ = s => document.querySelector(s);
   const view = $('#view');
 
@@ -21,6 +21,7 @@
         S = Object.assign(d, p, { ptr: Object.assign(d.ptr, p.ptr), settings: Object.assign(d.settings, p.settings) });
       } catch (e) { /* corrupt: start clean */ }
     }
+    if (S.v < 2) { S.swap = {}; S.v = 2; } // v2 changed the core finishers, so old swaps no longer line up
   }
   function save() {
     const v = JSON.stringify(S); mem[KEY] = v;
@@ -60,7 +61,7 @@
 
   /* ---------- UI state (not saved) ---------- */
   let tab = 'today';
-  const ui = { how: {}, open: {} };
+  const ui = { how: {}, open: {}, pick: false };
 
   /* ---------- Today ---------- */
   function topBar(label) {
@@ -96,7 +97,7 @@
         <span class="ak-body-s unit">reps</span>`;
     } else {
       const [v, u] = fmtSecs(s.r);
-      mid = `<span class="fixed">${v}</span><span class="ak-body-s unit">${u}${ex.side ? ' each side' : ''}</span>`;
+      mid = `<span class="fixed">${v}</span><span class="ak-body-s unit">${u}${ex.side ? ' each side' : ''}</span>${s.done ? '' : `<button class="timer-btn" data-act="timer" data-e="${ei}" data-s="${si}" aria-label="Start a ${v} ${u} timer">▶ Timer</button>`}`;
     }
     return `<div class="set ${s.done ? 'done' : ''}">
       <span class="ak-label-overline">${e.sets.length > 1 ? 'Set ' + (si + 1) : 'Go'}</span>${mid}
@@ -117,11 +118,19 @@
     }
     const started = e.sets.some(s => s.done);
     const last = lastLine(e.id);
+    const img = IMG.has(ex.img || e.id) ? (ex.img || e.id) : null;
+    const half = e.sets[0].w ? Math.max(5, Math.round(e.sets[0].w / 10) * 5) : 0;
+    const wu = e.warmup ? `<div class="set warm ${e.wu ? 'done' : ''}"><span class="ak-label-overline">Warm</span>
+        <span class="grow ak-body-s">${half ? 'About ' + half + ' lb' : 'About half your working weight'} × 10, nice and easy. It does not count.</span>
+        <button class="check" data-act="wu" data-e="${ei}" aria-pressed="${!!e.wu}" aria-label="Warm-up set done">✓</button></div>` : '';
     const tagTxt = { up: 'Level up', down: 'Ease off', new: 'New' }[e.dir];
     const how = ui.how[ei] ? `<div class="how">
+        ${img ? `<div class="photos"><figure><img src="img/${img}-0.jpg" alt="${esc(ex.name)}, start position" loading="lazy" width="480" height="320"><figcaption class="ak-caption muted">Start</figcaption></figure>
+          <figure><img src="img/${img}-1.jpg" alt="${esc(ex.name)}, finish position" loading="lazy" width="480" height="320"><figcaption class="ak-caption muted">Finish</figcaption></figure></div>` : ''}
         <p class="ak-body-m">${esc(ex.how)}</p>
         ${ex.cue ? `<p class="ak-body-m cue">${esc(ex.cue)}</p>` : ''}
         <p class="ak-body-s muted">You need: ${esc(ex.equip)}</p>
+        <a class="btn btn-secondary small" href="${yt(ex.q)}" target="_blank" rel="noopener" style="align-self:flex-start">▶ Watch a video</a>
         ${(ex.swaps || []).length && !started ? `<div class="stack-s"><div class="ak-label-overline">Machine taken? Not feeling it?</div>
           <div class="chips">${ex.swaps.map(id => `<button class="chip" data-act="swap" data-e="${ei}" data-id="${id}">Swap for ${esc(EX[id].name)}</button>`).join('')}</div></div>` : ''}
       </div>` : '';
@@ -129,16 +138,37 @@
         <div class="chips">${[['easy', 'Easy'], ['right', 'About right'], ['hard', 'Hard']].map(([k, t]) => `<button class="chip ${e.feel === k ? 'on' : ''}" data-act="feel" data-e="${ei}" data-f="${k}">${t}</button>`).join('')}</div></div>` : '';
     return `<section class="ex" id="ex${ei}">
       <div class="ex-head">
+        ${img ? `<button class="thumb" data-act="how" data-e="${ei}" aria-label="Show how to do ${esc(ex.name)}"><img src="img/${img}-1.jpg" alt="" loading="lazy" width="64" height="64"></button>` : ''}
         <div class="grow"><div class="ak-label-overline">${esc(ex.muscle)}</div><h3 class="ak-h3">${esc(ex.name)}</h3>
           <div class="ak-body-s ex-meta">${esc(target(e))}${last ? ' · ' + esc(last) : ''}</div></div>
-        <a class="icon-btn" href="${yt(ex.q)}" target="_blank" rel="noopener" aria-label="Watch a video of ${esc(ex.name)}"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.500z"/></svg></a>
         <button class="icon-btn ${ui.how[ei] ? 'on' : ''}" data-act="how" data-e="${ei}" aria-expanded="${!!ui.how[ei]}" aria-label="How to do ${esc(ex.name)}">?</button>
       </div>
       ${e.note ? `<div class="note-line">${tagTxt ? `<span class="tag ${e.dir === 'up' ? '' : 'soft'}">${tagTxt}</span>` : ''}<span class="ak-body-s muted">${esc(e.note)}</span></div>` : ''}
       ${how}
+      ${wu}
       ${e.sets.map((_, si) => setRow(e, ei, si)).join('')}
       ${feel}
     </section>`;
+  }
+
+  function pickUI(label) {
+    const nx = L.nextWorkout(S);
+    return `<button class="btn btn-tertiary small" data-act="choose" aria-expanded="${ui.pick}">${ui.pick ? 'Never mind' : label}</button>
+      ${ui.pick ? `<section class="card tight stack"><h2 class="ak-h1">Pick a workout</h2>
+        <p class="ak-body-s muted">Do whatever you feel like today. Pick one from later in your week and it swaps places, so you never get it twice. Anything else is a bonus.</p>
+        <div class="stack-s">${Object.keys(WORKOUTS).map(k => `<button class="pick ${S.cur && S.cur.wk === k ? 'on' : ''}" data-act="pick" data-wk="${k}">
+          <span class="grow"><span class="ak-body-m-strong">${esc(WORKOUTS[k].name)}</span><br><span class="ak-body-s muted">${esc(WORKOUTS[k].tag)}</span></span>
+          ${k === nx ? '<span class="tag soft">Up next</span>' : ''}</button>`).join('')}</div></section>` : ''}`;
+  }
+
+  function bwCard(t) {
+    if (!S.settings.bw) return '';
+    const last = [S.bw.length ? S.bw[S.bw.length - 1].date : null, S.bwSnooze].filter(Boolean).sort().pop();
+    if (last && (t - L.parse(last)) / 864e5 < 14) return '';
+    return `<section class="card peach stack"><h2 class="ak-h3">Two-week weigh-in?</h2>
+      <p class="ak-body-s muted">Optional. One number every couple of weeks is plenty to see a trend.</p>
+      <div class="row"><input class="field grow" id="bwIn" type="number" inputmode="decimal" step="any" placeholder="Weight, lb" aria-label="Body weight in pounds"><button class="btn btn-secondary small" data-act="bwadd">Save</button></div>
+      <button class="btn btn-tertiary small" data-act="bwskip" style="align-self:flex-start">Not now</button></section>`;
   }
 
   function workoutView(t) {
@@ -148,11 +178,12 @@
     return `<section class="hero">
         <div class="ak-label-overline">Today · ${esc(fmtDate(t))}</div>
         <h1 class="ak-display-m title">${esc(w.name)}</h1>
-        <div class="pills"><span class="pill">${easing ? '35' : '45'} min</span><span class="pill">${esc(w.tag)}</span>${easing ? '<span class="pill">Ease-in</span>' : ''}</div>
+        <div class="pills"><span class="pill">${easing ? '35' : c.wk === 'AR' ? '40' : '45'} min</span><span class="pill">${esc(w.tag)}</span>${easing ? '<span class="pill">Ease-in</span>' : ''}</div>
         <div><div class="bar-label"><span class="ak-body-s">${done === 0 ? 'Ready when you are' : done === total ? 'Every set done' : 'Keep going'}</span><span class="ak-body-m-strong">${done} / ${total}</span></div>
           <div class="bar"><i style="width:${total ? (done / total) * 100 : 0}%"></i></div></div>
         ${easing ? `<p class="ak-body-s">First few workouts are two sets each, on purpose. Workout ${S.sessions.length + 1} of ${L.EASE_IN_SESSIONS} before it goes to three.</p>` : ''}
       </section>
+      ${done ? '' : pickUI('Do a different workout')}
       ${c.ex.map(exBlock).join('')}
       <section class="stack">
         <button class="btn btn-primary block" data-act="finish" ${done ? '' : 'disabled'}>Finish workout</button>
@@ -178,7 +209,7 @@
       <section class="card stack"><div class="ak-label-overline muted">Next up</div>
         <h2 class="ak-h2">${esc(WORKOUTS[L.nextWorkout(S)].name)}${nx ? ' · ' + DOW_LONG[nx.getDay()] : ''}</h2>
         <p class="ak-body-s muted">If that day falls through, it waits for you. Nothing gets skipped.</p></section>
-      <button class="btn btn-tertiary small" data-act="start">Do another workout</button>`;
+      ${pickUI('Do another workout')}`;
   }
 
   function restView(t) {
@@ -192,6 +223,7 @@
       <section class="stack">
         <button class="btn btn-secondary block" data-act="start">Work out anyway</button>
         <p class="ak-body-s muted" style="text-align:center">Got an unexpected free hour? Take it. Your next workout is ready.</p>
+        ${pickUI('Pick a different workout')}
       </section>
       <section class="card peach stack-s"><h2 class="ak-h3">Optional</h2>
         <p class="ak-body-m">A walk with the stroller is real recovery. So is a nap.</p></section>`;
@@ -208,7 +240,7 @@
     else if (S.cur) body = workoutView(t);
     else if (doneToday.length) body = doneView(t, doneToday[doneToday.length - 1]);
     else body = restView(t);
-    return topBar(fmtDate(t)) + (first ? body + weekCard(true) : (needWeek ? weekCard(false) : '') + body);
+    return topBar(fmtDate(t)) + (first ? body + weekCard(true) : (needWeek ? weekCard(false) : '') + body + (S.cur && L.anyDone(S.cur) ? '' : bwCard(t)));
   }
 
   /* ---------- Week ---------- */
@@ -230,6 +262,7 @@
       <section class="card stack"><h2 class="ak-h1">How it works</h2>
         <div class="prose ak-body-m">
           <p>Your workouts sit in a queue. Whenever you show up, you get the next one. Miss Thursday and Thursday's workout is simply waiting on Friday. Nothing to make up, nothing skipped.</p>
+          <p>Fancy a different one today? Pick it on the Today tab. If it was coming up later, it swaps places with today's.</p>
           <p>The number of days you pick decides the plan:</p>
           <div class="table"><b>1–2</b><span>Full body each time</span><b>3</b><span>Full body, three different sessions</span><b>4</b><span>Upper body / lower body, twice each</span><b>5</b><span>The four above, plus a lighter cardio and core day</span></div>
           <p>Two a week still builds muscle. More is a bonus, not a debt.</p>
@@ -313,13 +346,16 @@
       <section class="card stack"><h2 class="ak-h1">How the weights go up</h2>
         <div class="prose ak-body-m"><p>Each lift has a rep range, like 8–12. Stay at the same weight until you hit the top number on every set. Then the app bumps the weight and you start again from the bottom of the range.</p>
         <p>Tell it how each lift felt. “Hard” holds the weight where it is. You never have to work out the next step yourself.</p></div></section>
+      <section class="card stack"><h2 class="ak-h1">Why it is built this way</h2>
+        <div class="prose ak-body-m"><p>Every muscle gets worked about twice a week, which is what builds it fastest. Each session starts with the big lifts while you are fresh and ends with abs and back.</p>
+        <p>Two to three sets of 8–12 with a minute or so of rest is the proven range for muscle. No jumping or sprint intervals for now: impact is the one thing a recovering pelvic floor does not need.</p></div></section>
       <section class="card stack"><h2 class="ak-h1">Missed a day?</h2>
         <div class="prose ak-body-m"><p>Then you missed a day. The workout waits. No streaks here, on purpose: with a baby in the house, the plan has to bend.</p></div></section>
 
       <section class="stack"><h2 class="ak-h1">Settings</h2><div>
         <div class="setting"><span class="ak-body-m-strong">Look</span><div class="chips">${opt('theme', 'auto', 'Auto')}${opt('theme', 'light', 'Light')}${opt('theme', 'dark', 'Dark')}</div></div>
-        <div class="setting"><span class="ak-body-m-strong">Rest timer</span><div class="chips">${opt('rest', 60, '1:00')}${opt('rest', 75, '1:15')}${opt('rest', 90, '1:30')}${opt('rest', 0, 'Off')}</div></div>
-        <div class="setting"><span><span class="ak-body-m-strong">Track body weight</span><br><span class="ak-body-s muted">Off unless you want it.</span></span><div class="chips">${opt('bw', false, 'Off')}${opt('bw', true, 'On')}</div></div>
+        <div class="setting"><span class="ak-body-m-strong">Rest timer</span><div class="chips">${opt('rest', 45, '0:45')}${opt('rest', 60, '1:00')}${opt('rest', 75, '1:15')}${opt('rest', 90, '1:30')}${opt('rest', 0, 'Off')}</div></div>
+        <div class="setting"><span><span class="ak-body-m-strong">Track body weight</span><br><span class="ak-body-s muted">Off unless you want it. When on, it asks every two weeks.</span></span><div class="chips">${opt('bw', false, 'Off')}${opt('bw', true, 'On')}</div></div>
       </div></section>
       <section class="stack"><h2 class="ak-h1">Your data</h2>
         <p class="ak-body-s muted">Everything is saved on this phone only. Download a backup now and then, especially before changing phones.</p>
@@ -341,27 +377,47 @@
     window.scrollTo(0, keepScroll ? y : 0);
   }
 
-  /* ---------- rest timer ---------- */
+  /* ---------- timer bar: rest between sets, and timed exercises ---------- */
   const restEl = $('#rest'), restTime = $('#restTime'), restFill = $('#restFill');
-  let restEnd = 0, restLen = 0, restInt = 0, restHide = 0;
-  function restStop() { clearInterval(restInt); clearTimeout(restHide); restEl.hidden = true; restEl.classList.remove('over'); }
-  function restTick() {
-    const left = Math.max(0, Math.ceil((restEnd - Date.now()) / 1000));
+  const restLabel = restEl.querySelector('.rest-label'), restHint = restEl.querySelector('.rest-hint');
+  let tm = null, restInt = 0, restHide = 0;
+  const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { /* unsupported */ } };
+  function timerStop() { clearInterval(restInt); clearTimeout(restHide); restEl.hidden = true; restEl.classList.remove('over'); tm = null; }
+  function timerPhase() {
+    const p = tm.phases[tm.i];
+    tm.len = p.secs; tm.end = Date.now() + p.secs * 1000; restLabel.textContent = p.label; timerTick();
+  }
+  function timerTick() {
+    if (!tm) return;
+    const left = Math.max(0, Math.ceil((tm.end - Date.now()) / 1000));
     restTime.textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
-    restFill.style.width = (100 - (left / restLen) * 100) + '%';
-    if (left <= 0) {
-      clearInterval(restInt);
-      restEl.classList.add('over'); restTime.textContent = 'Go';
-      try { navigator.vibrate && navigator.vibrate([90, 70, 90]); } catch (e) { /* unsupported */ }
-      restHide = setTimeout(restStop, 5000);
-    }
+    restFill.style.width = (100 - (left / tm.len) * 100) + '%';
+    if (left > 0) return;
+    buzz([90, 70, 90]);
+    if (tm.i < tm.phases.length - 1) { tm.i++; timerPhase(); return; }
+    const done = tm.onDone;
+    clearInterval(restInt); tm = null;
+    restEl.classList.add('over'); restTime.textContent = done ? 'Done' : 'Go'; restLabel.textContent = ''; restHint.textContent = '';
+    restHide = setTimeout(timerStop, 5000);
+    if (done) done();
   }
-  function restStart(secs) {
-    if (!secs) return;
-    restStop(); restLen = secs; restEnd = Date.now() + secs * 1000;
-    restEl.hidden = false; restTick(); restInt = setInterval(restTick, 250);
+  /* phases: [{label, secs}], run back to back. onDone fires only if it runs to the end. */
+  function timerStart(phases, onDone) {
+    timerStop(); tm = { phases, i: 0, onDone };
+    restHint.textContent = onDone ? 'Tap to stop' : 'Tap to skip';
+    restEl.hidden = false; timerPhase(); restInt = setInterval(timerTick, 250);
   }
-  restEl.addEventListener('click', restStop);
+  const restStart = secs => { if (secs) timerStart([{ label: 'Rest', secs }]); };
+  const restStop = timerStop;
+  restEl.addEventListener('click', timerStop);
+
+  function completeSet(ei, si) {
+    const e = S.cur.ex[ei], ex = EX[e.id];
+    e.sets[si].done = true; save(); render(true);
+    const more = L.setsDone(S.cur) < L.setsTotal(S.cur);
+    if (more && !ex.noFeel) restStart(WORKOUTS[S.cur.wk].slots[e.slot][1] ? Math.min(45, S.settings.rest) : S.settings.rest);
+    else if (!tm) timerStop();
+  }
 
   /* ---------- finish celebration ---------- */
   const party = $('#party'), fx = $('#partyFx');
@@ -446,18 +502,21 @@
     },
     check(el) {
       const ei = +el.dataset.e, si = +el.dataset.s, e = S.cur.ex[ei], ex = EX[e.id], s = e.sets[si];
-      if (!s.done) {
-        const miss = ex.type === 'w' && s.w == null ? 'w' : ex.type !== 't' && !s.r ? 'r' : null;
-        if (miss) { const inp = view.querySelector(`input[data-k="${miss}"][data-e="${ei}"][data-s="${si}"]`); if (inp) inp.focus(); return; }
-      }
-      s.done = !s.done;
-      if (!s.done) { e.feel = null; ui.open[ei] = false; }
-      save(); render(true);
-      if (s.done) {
-        const more = L.setsDone(S.cur) < L.setsTotal(S.cur);
-        if (more && !ex.noFeel) restStart(WORKOUTS[S.cur.wk].slots[e.slot][1] ? Math.min(45, S.settings.rest) : S.settings.rest);
-      } else restStop();
+      if (s.done) { s.done = false; e.feel = null; ui.open[ei] = false; timerStop(); save(); render(true); return; }
+      const miss = ex.type === 'w' && s.w == null ? 'w' : ex.type !== 't' && !s.r ? 'r' : null;
+      if (miss) { const inp = view.querySelector(`input[data-k="${miss}"][data-e="${ei}"][data-s="${si}"]`); if (inp) inp.focus(); return; }
+      timerStop(); completeSet(ei, si);
     },
+    timer(el) {
+      const ei = +el.dataset.e, si = +el.dataset.s, e = S.cur.ex[ei], ex = EX[e.id], secs = e.sets[si].r;
+      const ready = secs < 120 ? [{ label: 'Get ready', secs: 5 }] : [];
+      const phases = ex.side ? [...ready, { label: 'Side 1', secs }, { label: 'Switch sides', secs: 5 }, { label: 'Side 2', secs }] : [...ready, { label: 'Go', secs }];
+      timerStart(phases, () => { if (S.cur && S.cur.ex[ei] === e && !e.sets[si].done) completeSet(ei, si); });
+    },
+    wu(el) { const e = S.cur.ex[+el.dataset.e]; e.wu = !e.wu; save(); render(true); },
+    choose() { ui.pick = !ui.pick; render(true); },
+    pick(el) { S.skip = null; S.cur = L.buildSession(S, now(), el.dataset.wk); ui.pick = false; ui.how = {}; ui.open = {}; save(); render(); },
+    bwskip() { S.bwSnooze = L.iso(now()); save(); render(true); },
     feel(el) { const ei = +el.dataset.e; S.cur.ex[ei].feel = el.dataset.f; ui.open[ei] = false; ui.how[ei] = false; save(); render(true); },
     finish() { restStop(); const ses = L.finish(S); ui.how = {}; ui.open = {}; save(); render(); if (ses) celebrate(ses); },
     set(el) {

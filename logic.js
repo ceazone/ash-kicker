@@ -13,10 +13,11 @@
 
   function defaultState() {
     return {
-      v: 1,
+      v: 2,
       days: [1, 2, 4, 5],          // weekdays she plans to train, Sunday = 0
       weekOk: null,                // Monday (ISO) of the last week she confirmed days for
       ptr: { full2: 0, full3: 0, ul4: 0, ul5: 0 },
+      ahead: {},                   // workouts done out of turn this cycle, per split
       cur: null,                   // workout in progress
       sessions: [],                // finished workouts, oldest first
       swap: {},                    // remembered swaps: { "FA:1": "goblet" }
@@ -27,9 +28,32 @@
 
   const splitFor = n => (n <= 2 ? 'full2' : n === 3 ? 'full3' : n === 4 ? 'ul4' : 'ul5');
 
+  /* The queue for a split: the rotation from the pointer on, minus anything she already
+     did out of turn this cycle (S.ahead). Doing a workout early swaps it, it is not repeated. */
+  function upcoming(S, sp, n) {
+    const r = ROTATIONS[sp], ahead = ((S.ahead || {})[sp] || []).slice(), out = [];
+    for (let p = S.ptr[sp] || 0; out.length < n; p++) {
+      const wk = r[p % r.length], i = ahead.indexOf(wk);
+      if (i >= 0) ahead.splice(i, 1); else out.push(wk);
+    }
+    return out;
+  }
   function nextWorkout(S, offset) {
-    const sp = splitFor(S.days.length), r = ROTATIONS[sp];
-    return r[((S.ptr[sp] || 0) + (offset || 0)) % r.length];
+    return upcoming(S, splitFor(S.days.length), (offset || 0) + 1)[offset || 0];
+  }
+  /* Record a finished workout against the queue. Workouts outside the rotation are extras. */
+  function advance(S, sp, wk) {
+    const r = ROTATIONS[sp];
+    if (!r.includes(wk)) return;
+    S.ahead = S.ahead || {};
+    const ahead = S.ahead[sp] = S.ahead[sp] || [];
+    const settle = () => { // step the pointer over anything already done early
+      for (let i; (i = ahead.indexOf(r[(S.ptr[sp] || 0) % r.length])) >= 0;) { ahead.splice(i, 1); S.ptr[sp] = ((S.ptr[sp] || 0) + 1) % r.length; }
+    };
+    settle();
+    if (r[(S.ptr[sp] || 0) % r.length] === wk) S.ptr[sp] = ((S.ptr[sp] || 0) + 1) % r.length;
+    else if (!ahead.includes(wk)) ahead.push(wk);
+    settle();
   }
 
   const mainSets = S => (S.sessions.length < EASE_IN_SESSIONS ? 2 : 3);
@@ -98,11 +122,11 @@
   function buildSession(S, today, wk) {
     const split = splitFor(S.days.length);
     wk = wk || nextWorkout(S);
-    return {
-      date: iso(today), wk, split, startedAt: Date.now(),
-      ex: WORKOUTS[wk].slots.map((_, i) => buildEntry(S, wk, i)),
-      note: ''
-    };
+    const ex = WORKOUTS[wk].slots.map((_, i) => buildEntry(S, wk, i));
+    // one light warm-up set before the first weighted lift of the day
+    const first = ex.find(e => EX[e.id].type === 'w' && !WORKOUTS[wk].slots[e.slot][1]);
+    if (first) { first.warmup = true; first.wu = false; }
+    return { date: iso(today), wk, split, startedAt: Date.now(), ex, note: '' };
   }
 
   const anyDone = ses => !!ses && ses.ex.some(e => e.sets.some(s => s.done));
@@ -142,8 +166,7 @@
     ses.pbs = personalBests(S, ses);
     ses.finishedAt = Date.now();
     S.sessions.push(ses);
-    const r = ROTATIONS[ses.split];
-    if (r[(S.ptr[ses.split] || 0) % r.length] === ses.wk) S.ptr[ses.split] = ((S.ptr[ses.split] || 0) + 1) % r.length;
+    advance(S, ses.split, ses.wk);
     S.cur = null;
     return ses;
   }
@@ -178,7 +201,7 @@
   }
 
   const L = {
-    iso, parse, addDays, monday, defaultState, splitFor, nextWorkout, mainSets, lastEntry, suggest,
+    iso, parse, addDays, monday, defaultState, splitFor, nextWorkout, upcoming, advance, mainSets, lastEntry, suggest,
     buildEntry, buildSession, anyDone, setsDone, setsTotal, volume, bestWeight, personalBests,
     finish, settleStale, sessionsOn, weekCount, weekPreview, EASE_IN_SESSIONS
   };
